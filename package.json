@@ -1,0 +1,29 @@
+{
+  "name": "npm-shieldbot",
+  "version": "1.0.0",
+  "description": "Autonomous NPM vulnerability management system with reachability-aware analysis, AI-powered risk scoring, and self-healing remediation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/scanner.test.js && node tests/analyzer.test.js",
+    "test:scanner": "node tests/scanner.test.js",
+    "test:analyzer": "node tests/analyzer.test.js",
+    "scan": "node -e \"const s=require('./src/scanner');s.scan(process.cwd()).then(r=>console.log(JSON.stringify(r,null,2)))\"",
+    "dashboard": "node server.js"
+  },
+  "keywords": [
+    "npm",
+    "security",
+    "vulnerability",
+    "scanner",
+    "autonomous",
+    "reachability",
+    "typosquatting",
+    "supply-chain"
+  ],
+  "author": "ShieldBot Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

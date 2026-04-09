@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NPM ShieldBot — Security Dashboard</title>
+  <meta name="description"
+    content="Autonomous NPM vulnerability management dashboard with real-time security monitoring" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- ═══════ TOP NAV ═══════ -->
+  <nav id="topnav">
+    <div class="nav-brand">
+      <span class="shield-icon">🛡️</span>
+      <span class="brand-text">ShieldBot</span>
+      <span class="brand-badge">AUTONOMOUS</span>
+    </div>
+    <div class="nav-status">
+      <span id="scan-status" class="status-pill status-idle">● Idle</span>
+      <button id="btn-scan" class="btn-primary" onclick="startScan()">Run Scan</button>
+    </div>
+  </nav>
+
+  <!-- ═══════ MAIN GRID ═══════ -->
+  <main id="dashboard">
+
+    <!-- ── ROW 1: Summary Cards ── -->
+    <section class="card-row" id="summary-cards">
+      <div class="stat-card critical" id="card-critical">
+        <div class="stat-number" id="num-critical">0</div>
+        <div class="stat-label">Critical</div>
+        <div class="stat-icon">🔴</div>
+      </div>
+      <div class="stat-card high" id="card-high">
+        <div class="stat-number" id="num-high">0</div>
+        <div class="stat-label">High</div>
+        <div class="stat-icon">🟠</div>
+      </div>
+      <div class="stat-card medium" id="card-medium">
+        <div class="stat-number" id="num-medium">0</div>
+        <div class="stat-label">Medium</div>
+        <div class="stat-icon">🟡</div>
+      </div>
+      <div class="stat-card low" id="card-low">
+        <div class="stat-number" id="num-low">0</div>
+        <div class="stat-label">Low</div>
+        <div class="stat-icon">🟢</div>
+      </div>
+      <div class="stat-card phantom" id="card-phantom">
+        <div class="stat-number" id="num-phantom">0</div>
+        <div class="stat-label">Phantom</div>
+        <div class="stat-icon">⚪</div>
+      </div>
+      <div class="stat-card packages" id="card-packages">
+        <div class="stat-number" id="num-packages">0</div>
+        <div class="stat-label">Packages</div>
+        <div class="stat-icon">📦</div>
+      </div>
+    </section>
+
+    <!-- ── ROW 2: Charts ── -->
+    <section class="chart-row">
+      <div class="card chart-card" id="severity-chart-card">
+        <h3>Severity Breakdown</h3>
+        <canvas id="severity-chart"></canvas>
+      </div>
+      <div class="card chart-card" id="reachability-chart-card">
+        <h3>Reachability Analysis</h3>
+        <canvas id="reachability-chart"></canvas>
+      </div>
+      <div class="card chart-card" id="health-chart-card">
+        <h3>Dependency Health Grades</h3>
+        <canvas id="health-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- ── ROW 3: Risk Score + Typosquat ── -->
+    <section class="info-row">
+      <div class="card" id="risk-score-card">
+        <h3>Overall Risk Score</h3>
+        <div class="risk-gauge">
+          <div class="gauge-circle" id="risk-gauge">
+            <span class="gauge-value" id="risk-value">0</span>
+          </div>
+          <div class="gauge-label" id="risk-label">Scanning...</div>
+        </div>
+      </div>
+      <div class="card" id="typosquat-card">
+        <h3>🎭 Typosquat Alerts</h3>
+        <div id="typosquat-list" class="alert-list">
+          <p class="empty-state">No suspicious packages detected</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ROW 4: Vulnerability Table ── -->
+    <section class="table-section">
+      <div class="card full-width" id="vuln-table-card">
+        <div class="table-header">
+          <h3>Vulnerability Details</h3>
+          <div class="table-filters">
+            <select id="filter-severity" onchange="filterTable()">
+              <option value="all">All Severities</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <select id="filter-reachability" onchange="filterTable()">
+              <option value="all">All</option>
+              <option value="reachable">Reachable Only</option>
+              <option value="phantom">Phantom Only</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="vuln-table">
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th>Risk Score</th>
+                <th>Severity</th>
+                <th>Reachable</th>
+                <th>Blast Radius</th>
+                <th>Fix Available</th>
+                <th>Recommendation</th>
+              </tr>
+            </thead>
+            <tbody id="vuln-tbody">
+              <tr class="empty-row">
+                <td colspan="7">Run a scan to see vulnerability details</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ROW 5: Health Scores Table ── -->
+    <section class="table-section">
+      <div class="card full-width" id="health-table-card">
+        <h3>📊 Dependency Health Report Card</h3>
+        <div class="table-container">
+          <table id="health-table">
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th>Grade</th>
+                <th>Health Score</th>
+                <th>CVE History</th>
+                <th>Maintainer</th>
+                <th>Downloads</th>
+                <th>Flags</th>
+              </tr>
+            </thead>
+            <tbody id="health-tbody">
+              <tr class="empty-row">
+                <td colspan="7">Run a scan to see health scores</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ROW 6: Scan Timeline ── -->
+    <section class="timeline-section">
+      <div class="card full-width" id="timeline-card">
+        <h3>🕐 Scan Timeline</h3>
+        <div id="timeline" class="timeline">
+          <div class="timeline-entry">
+            <span class="time">--:--</span>
+            <span class="event">Waiting for first scan...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════ FOOTER ═══════ -->
+  <footer>
+    <p>NPM ShieldBot v1.0 — Autonomous Vulnerability Management System</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
